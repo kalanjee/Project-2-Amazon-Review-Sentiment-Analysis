@@ -1,0 +1,64 @@
+import pandas as pd
+import spacy
+from textblob import TextBlob
+
+# Load spaCy model
+nlp = spacy.load('en_core_web_md')
+
+# Function to perform sentiment analysis using spaCy
+def predict_sentiment_spacy(text):
+    try:
+        # Tokenize the text
+        doc = nlp(text)
+
+        # Calculate sentiment score
+        sentiment_score = doc.sentiment
+
+        # Determine sentiment label
+        if sentiment_score > 0:
+            sentiment = 'Positive'
+        elif sentiment_score == 0:
+            sentiment = 'Neutral'
+        else:
+            sentiment = 'Negative'
+
+        return sentiment, sentiment_score
+    except Exception as e:
+        # Handle exception, such as SSL errors
+        print(f"Error in spaCy sentiment analysis: {e}")
+        return 'Error', None
+
+# Function to perform polarity analysis using TextBlob
+def predict_polarity_textblob(text):
+    try:
+        # Create a TextBlob object
+        blob = TextBlob(text)
+
+        # Get sentiment polarity score
+        polarity_score = blob.sentiment
+
+        return polarity_score
+    except Exception as e:
+        # Handle exception
+        print(f"Error in TextBlob polarity analysis: {e}")
+        return None
+
+# Load the data
+df = pd.read_csv('amazon_product_reviews.csv')
+
+# Select the 'reviews.text' column
+reviews_data = df['reviews.text']
+
+# Remove missing values
+clean_data = df.dropna(subset=['reviews.text'])
+
+# Perform sentiment analysis and polarity calculation for all reviews
+for index, review in enumerate(clean_data['reviews.text']):
+    sentiment_spacy, score_spacy = predict_sentiment_spacy(review)
+    polarity_textblob = predict_polarity_textblob(review)
+
+    print(f"Review {index + 1}:")
+    print(f"- SpaCy Predicted Sentiment: {sentiment_spacy}")
+    print(f"- SpaCy Sentiment Score: {score_spacy}")
+    print(f"- TextBlob Polarity Score: {polarity_textblob}")
+    print('-' * 50)
