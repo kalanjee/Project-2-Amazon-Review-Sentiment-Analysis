@@ -2,16 +2,16 @@ import pandas as pd
 from textblob import TextBlob
 import spacy
 
+
 # Load spaCy model - using _md
 nlp = spacy.load('en_core_web_md')
 
-# Function to perform sentiment analysis using spaCy
 def predict_sentiment_spacy(text):
     try:
         # Tokenize the text
         doc = nlp(text)
 
-        # Calculate sentiment score
+        # Calculate sentiment score (polarity)
         sentiment_score = doc.sentiment
 
         # Attach a label to the sentiment 
@@ -19,7 +19,7 @@ def predict_sentiment_spacy(text):
 
         return sentiment, sentiment_score
     except Exception as e:
-        # Handle exception, such as SSL errors
+        # Handle exceptions
         print(f"Error in spaCy sentiment analysis: {e}")
         return 'Error', None
 
@@ -40,6 +40,21 @@ def predict_sentiment_textblob(text):
         # Handle exception
         print(f"Error in TextBlob sentiment analysis: {e}")
         return 'Error', None
+
+# Function to perform polarity analysis using TextBlob
+def predict_polarity_textblob(text):
+    try:
+        # Create a TextBlob object
+        blob = TextBlob(text)
+
+        # Get sentiment polarity score
+        polarity_score = blob.sentiment
+
+        return polarity_score
+    except Exception as e:
+        # Handle exception
+        print(f"Error in TextBlob polarity analysis: {e}")
+        return None
 
 # Function to calculate similarity score using spaCy
 def calculate_similarity(review1, review2):
@@ -69,6 +84,7 @@ clean_data = df.dropna(subset=['reviews.text'])
 # Perform sentiment analysis and similarity calculation
 compare_more = True
 
+
 while compare_more:
     try:
         # Get user input for indices
@@ -81,30 +97,39 @@ while compare_more:
 
         # SpaCy Sentiment Analysis
         sentiment_spacy_1, score_spacy_1 = predict_sentiment_spacy(review1)
-        print(f"Sentiment for Review {index1}: {sentiment_spacy_1}")
+        print(f"\nSentiment for Review {index1}: {sentiment_spacy_1}")
+        print(f"SpaCy Sentiment Score for Review {index1}: {score_spacy_1}")
 
         sentiment_spacy_2, score_spacy_2 = predict_sentiment_spacy(review2)
-        print(f"Sentiment for Review {index2}: {sentiment_spacy_2}")
+        print(f"\nSentiment for Review {index2}: {sentiment_spacy_2}")
+        print(f"SpaCy Sentiment Score for Review {index2}: {score_spacy_2}")
 
         # TextBlob Sentiment Analysis
         sentiment_textblob_1, score_textblob_1 = predict_sentiment_textblob(review1)
-        print(f"TextBlob Sentiment for Review {index1}: {sentiment_textblob_1}")
+        print(f"\nTextBlob Sentiment for Review {index1}: {sentiment_textblob_1}")
         print(f"TextBlob Sentiment Score for Review {index1}: {score_textblob_1}")
 
         sentiment_textblob_2, score_textblob_2 = predict_sentiment_textblob(review2)
-        print(f"TextBlob Sentiment for Review {index2}: {sentiment_textblob_2}")
+        print(f"\nTextBlob Sentiment for Review {index2}: {sentiment_textblob_2}")
         print(f"TextBlob Sentiment Score for Review {index2}: {score_textblob_2}")
 
         # Calculate Similarity
         similarity_score = calculate_similarity(review1, review2)
-        print(f"Similarity Score between Review {index1} and Review {index2}: {similarity_score}")
+        print(f"\nSimilarity Score between Review {index1} and Review {index2}: {round(similarity_score, 2)}")
+
+        # TextBlob Polarity Analysis
+        sentiment_textblob_1, score_textblob_1 = predict_sentiment_textblob(review1)
+        print(f"\nTextBlob Polarity for Review {index1}: {round(score_textblob_1, 2)}")
+
+        sentiment_textblob_2, score_textblob_2 = predict_sentiment_textblob(review2)
+        print(f"\nTextBlob Polarity for Review {index2}: {round(score_textblob_2, 2)}")
 
     except ValueError:
         print("Invalid index. Please enter valid integer indices.")
 
     # Ask the user if they want to compare more reviews
-    response = input("Do you want to compare more reviews? (yes/no): ").lower()
-    compare_more = response == 'yes'
+    response = input("\nDo you want to compare more reviews? (yes/no): ").lower()
+    compare_more = response.startswith('y')
 
 # Print sentiment analysis for all reviews
 print("\nSentiment Analysis for All Reviews:")
