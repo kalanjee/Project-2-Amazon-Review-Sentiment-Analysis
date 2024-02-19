@@ -1,0 +1,128 @@
+import pandas as pd
+from textblob import TextBlob
+import spacy
+from spacytextblob.spacytextblob import SpacyTextBlob
+
+
+# Load spaCy model - using _md
+nlp = spacy.load('en_core_web_md')
+
+# Function to perform sentiment analysis using TextBlob
+def predict_sentiment_textblob(text):
+    try:
+        # Create a TextBlob object
+        blob = TextBlob(text)
+
+        # Get sentiment polarity score
+        sentiment_score = blob.sentiment.polarity
+
+        # Determine sentiment label
+        sentiment = 'Positive' if sentiment_score > 0 else 'Negative' if sentiment_score < 0 else 'Neutral'
+
+        return sentiment, sentiment_score
+    except Exception as e:
+        # Handle exception
+        print(f"Error in TextBlob sentiment analysis: {e}")
+        return 'Error', None
+
+# Function to perform polarity analysis using TextBlob
+def predict_polarity_textblob(text):
+    try:
+        # Create a TextBlob object
+        blob = TextBlob(text)
+
+        # Get sentiment polarity score
+        polarity_score = blob.sentiment
+
+        return polarity_score
+    except Exception as e:
+        # Handle exception
+        print(f"Error in TextBlob polarity analysis: {e}")
+        return None
+
+# Function to calculate similarity score using spaCy
+def calculate_similarity(review1, review2):
+    try:
+        # Tokenize and preprocess the texts
+        doc1 = nlp(review1)
+        doc2 = nlp(review2)
+
+        # Calculate similarity score
+        similarity_score = doc1.similarity(doc2)
+
+        return similarity_score
+    except Exception as e:
+        # Handle exception
+        print(f"Error in calculating similarity: {e}")
+        return None
+
+# Load the data
+df = pd.read_csv('amazon_product_reviews.csv')
+
+# Select the 'reviews.text' column
+reviews_data = df['reviews.text']
+
+# Remove missing values
+clean_data = df.dropna(subset=['reviews.text'])
+
+# Perform sentiment analysis and similarity calculation
+compare_more = True
+
+
+while compare_more:
+    try:
+        # Get user input for indices
+        index1 = int(input("Enter the index of the first review: "))
+        index2 = int(input("Enter the index of the second review: "))
+
+        # Get the reviews
+        review1 = clean_data.iloc[index1]['reviews.text']
+        review2 = clean_data.iloc[index2]['reviews.text']
+
+        # TextBlob Sentiment Analysis
+        sentiment_textblob_1, score_textblob_1 = predict_sentiment_textblob(review1)
+        print(f"\nTextBlob Sentiment for Review {index1}: {sentiment_textblob_1}")
+        print(f"TextBlob Sentiment Score for Review {index1}: {score_textblob_1}")
+
+        sentiment_textblob_2, score_textblob_2 = predict_sentiment_textblob(review2)
+        print(f"\nTextBlob Sentiment for Review {index2}: {sentiment_textblob_2}")
+        print(f"TextBlob Sentiment Score for Review {index2}: {score_textblob_2}")
+
+        # Calculate Similarity
+        similarity_score = calculate_similarity(review1, review2)
+        print(f"\nSimilarity Score between Review {index1} and Review {index2}: {round(similarity_score, 2)}")
+
+        # TextBlob Polarity Analysis
+        sentiment_textblob_1, score_textblob_1 = predict_sentiment_textblob(review1)
+        print(f"\nTextBlob Polarity for Review {index1}: {round(score_textblob_1, 2)}")
+
+        sentiment_textblob_2, score_textblob_2 = predict_sentiment_textblob(review2)
+        print(f"\nTextBlob Polarity for Review {index2}: {round(score_textblob_2, 2)}")
+
+    except ValueError:
+        print("Invalid input. Please enter valid integer indices.")
+    except IndexError:
+        print("Index out of range. Please enter valid indices within the range.")
+
+
+    # Ask the user if they want to compare more reviews
+    response = input("\nDo you want to compare more reviews? (yes/no): ").strip().lower()
+    if response.startswith('y'):
+        compare_more = True
+    elif response.startswith('n'):
+        compare_more = False
+        print("Ok, one quick thing to check then.")
+        sentiment_analysis_response = input("Do you want to print the sentiment analysis for all reviews? (yes/no): ").strip().lower()
+        if sentiment_analysis_response.startswith('y'):
+            for index, review in enumerate(clean_data['reviews.text']):
+                sentiment_textblob, score_textblob = predict_sentiment_textblob(review)
+                print(f"Review {index + 1}:")
+                print(f"- TextBlob Predicted Sentiment: {sentiment_textblob}")
+                print(f"- TextBlob Sentiment Score: {score_textblob}")
+                print('-' * 50)
+        else:
+            print("Ok, thanks. Have a nice day.")
+    else:
+        print("Invalid response. Please enter 'yes' or 'no'.")
+
+
